@@ -129,6 +129,9 @@ namespace FfmpegConverter
             Console.WriteLine($"Converting: {inputFile}");
             Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}");
 
+            // Print the full ffmpeg command
+            Console.WriteLine($"ffmpeg {arguments}");
+
             string lastStatLine = null;
             DateTime lastPrint = DateTime.MinValue;
 
