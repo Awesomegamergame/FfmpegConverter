@@ -73,6 +73,8 @@ namespace FfmpegConverter
         {
             // Defaults
             int cqValue = 30;
+            bool enableSpatialAq = false;
+            int aqStrength = 8;
             bool enableSwDecoding = false;
 
             // Look for any .txt file in the current directory
@@ -84,9 +86,23 @@ namespace FfmpegConverter
                 try
                 {
                     var lines = File.ReadAllLines(txtFile);
+
+                    // First line: CQ value
                     if (lines.Length > 0 && int.TryParse(lines[0], out int parsedCq))
                         cqValue = parsedCq;
-                    if (lines.Length > 1 && bool.TryParse(lines[1], out bool parsedSw))
+
+                    // Second line: spatial-aq and aq-strength
+                    if (lines.Length > 1)
+                    {
+                        var parts = lines[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 0 && bool.TryParse(parts[0], out bool parsedSpatialAq))
+                            enableSpatialAq = parsedSpatialAq;
+                        if (enableSpatialAq && parts.Length > 1 && int.TryParse(parts[1], out int parsedAqStrength) && parsedAqStrength >= 1 && parsedAqStrength <= 15)
+                            aqStrength = parsedAqStrength;
+                    }
+
+                    // Third line: software decoding
+                    if (lines.Length > 2 && bool.TryParse(lines[2], out bool parsedSw))
                         enableSwDecoding = parsedSw;
                 }
                 catch (Exception ex)
@@ -99,17 +115,22 @@ namespace FfmpegConverter
             // Generate 4 random uppercase alphanumeric characters
             string randomStr = GetRandomString(4);
 
-            // Output file: original name + -ffmpeg-(cq)-(random).mkv
-            string outputFile = Path.Combine(
-                Path.GetDirectoryName(inputFile),
-                $"{Path.GetFileNameWithoutExtension(inputFile)}-ffmpeg-{cqValue}-{randomStr}.mkv"
-            );
+            // Output file: original name + -ffmpeg-(cq)[-aq-##]-(random).mkv
+            string baseName = $"{Path.GetFileNameWithoutExtension(inputFile)}-ffmpeg-{cqValue}";
+            if (enableSpatialAq)
+                baseName += $"-aq-{aqStrength}";
+            baseName += $"-{randomStr}.mkv";
+            string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName);
 
             // Build ffmpeg arguments
-            // Always include -hwaccel_output_format cuda, only add -hwaccel nvdec if not using SW decoding
             string hwaccel = enableSwDecoding ? "-hwaccel_output_format cuda " : "-hwaccel nvdec -hwaccel_output_format cuda ";
             string swthreads = enableSwDecoding ? "-threads 0 " : "";
-            string arguments = $" {hwaccel}{swthreads}-i \"{inputFile}\" -map 0 -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {cqValue} -b:v 0 -c:a copy -c:s copy \"{outputFile}\"";
+
+            string aqArgs = "";
+            if (enableSpatialAq)
+                aqArgs = $"-spatial-aq 1 -aq-strength {aqStrength} ";
+
+            string arguments = $" {hwaccel}{swthreads}-i \"{inputFile}\" -map 0 -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {cqValue} -b:v 0 {aqArgs}-c:a copy -c:s copy \"{outputFile}\"";
 
             var process = new Process
             {
@@ -127,7 +148,7 @@ namespace FfmpegConverter
             currentFfmpegProcess = process; // Track the process
 
             Console.WriteLine($"Converting: {inputFile}");
-            Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}");
+            Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}, Spatial AQ: {enableSpatialAq}, AQ Strength: {(enableSpatialAq ? aqStrength.ToString() : "N/A")}");
 
             // Print the full ffmpeg command
             Console.WriteLine($"ffmpeg {arguments}");
