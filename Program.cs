@@ -112,6 +112,33 @@ namespace FfmpegConverter
                 }
             }
 
+            // Get video codec using ffprobe
+            string codecName = "unknown";
+            try
+            {
+                var probeProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "ffprobe",
+                        Arguments = $"-v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 \"{inputFile}\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+                probeProcess.Start();
+                string output = probeProcess.StandardOutput.ReadToEnd().Trim();
+                probeProcess.WaitForExit();
+                if (!string.IsNullOrWhiteSpace(output))
+                    codecName = output;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ffprobe error: {ex.Message}]");
+            }
+
             // Generate 4 random uppercase alphanumeric characters
             string randomStr = GetRandomString(4);
 
@@ -149,6 +176,8 @@ namespace FfmpegConverter
 
             Console.WriteLine($"Converting: {inputFile}");
             Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}, Spatial AQ: {enableSpatialAq}, AQ Strength: {(enableSpatialAq ? aqStrength.ToString() : "N/A")}");
+
+            Console.WriteLine($"Input video codec: {codecName}");
 
             // Print the full ffmpeg command
             Console.WriteLine($"ffmpeg {arguments}");
