@@ -2,12 +2,47 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices; // <-- Add this
+using System.Threading; // <-- Add this
 
 namespace FfmpegConverter
 {
     internal class Program
     {
         private static Process currentFfmpegProcess; // Track the running ffmpeg process
+
+        // Add these fields and methods for console control handling
+        #region Trap application termination
+        [DllImport("Kernel32")]
+        private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
+
+        private delegate bool EventHandler(CtrlType sig);
+        static EventHandler _handler;
+
+        enum CtrlType
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT = 1,
+            CTRL_CLOSE_EVENT = 2,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT = 6
+        }
+
+        private static bool Handler(CtrlType sig)
+        {
+            Console.WriteLine("Exiting system due to external CTRL-C, or process kill, or shutdown");
+
+            // Kill ffmpeg if running
+            KillFfmpegIfRunning();
+
+            Console.WriteLine("Cleanup complete");
+
+            //shutdown right away so there are no lingering threads
+            Environment.Exit(-1);
+
+            return true;
+        }
+        #endregion
 
         // List of common video file extensions
         private static readonly string[] VideoExtensions = {
@@ -18,7 +53,11 @@ namespace FfmpegConverter
 
         static void Main(string[] args)
         {
-            // Handle console close (Ctrl+C, window close, etc.)
+            // Register the console control handler
+            _handler += new EventHandler(Handler);
+            SetConsoleCtrlHandler(_handler, true);
+
+            // Existing handlers (optional, but harmless to keep)
             Console.CancelKeyPress += (sender, e) =>
             {
                 KillFfmpegIfRunning();
