@@ -139,6 +139,40 @@ namespace FfmpegConverter
                 Console.WriteLine($"[ffprobe error: {ex.Message}]");
             }
 
+            // Map ffprobe codec name to cuvid decoder
+            string cuvidDecoder = null;
+            if (!enableSwDecoding)
+            {
+                switch (codecName.ToLowerInvariant())
+                {
+                    case "h264":
+                        cuvidDecoder = "h264_cuvid";
+                        break;
+                    case "hevc":
+                    case "h265":
+                        cuvidDecoder = "hevc_cuvid";
+                        break;
+                    case "mpeg1video":
+                        cuvidDecoder = "mpeg1_cuvid";
+                        break;
+                    case "mpeg2video":
+                        cuvidDecoder = "mpeg2_cuvid";
+                        break;
+                    case "vc1":
+                        cuvidDecoder = "vc1_cuvid";
+                        break;
+                    case "vp8":
+                        cuvidDecoder = "vp8_cuvid";
+                        break;
+                    case "vp9":
+                        cuvidDecoder = "vp9_cuvid";
+                        break;
+                    case "av1":
+                        cuvidDecoder = "av1_cuvid";
+                        break;
+                }
+            }
+
             // Generate 4 random uppercase alphanumeric characters
             string randomStr = GetRandomString(4);
 
@@ -150,7 +184,11 @@ namespace FfmpegConverter
             string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName);
 
             // Build ffmpeg arguments
-            string hwaccel = enableSwDecoding ? "-hwaccel_output_format cuda " : "-hwaccel nvdec -hwaccel_output_format cuda ";
+            string hwaccel = enableSwDecoding ? "-hwaccel_output_format cuda " : "-hwaccel nvdec ";
+            if (!enableSwDecoding && cuvidDecoder != null)
+                hwaccel += $"-c:v {cuvidDecoder} ";
+            hwaccel += "-hwaccel_output_format cuda ";
+
             string swthreads = enableSwDecoding ? "-threads 0 " : "";
 
             string aqArgs = "";
@@ -176,7 +214,6 @@ namespace FfmpegConverter
 
             Console.WriteLine($"Converting: {inputFile}");
             Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}, Spatial AQ: {enableSpatialAq}, AQ Strength: {(enableSpatialAq ? aqStrength.ToString() : "N/A")}");
-
             Console.WriteLine($"Input video codec: {codecName}");
 
             // Print the full ffmpeg command
