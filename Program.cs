@@ -10,7 +10,11 @@ namespace FfmpegConverter
         private static Process currentFfmpegProcess; // Track the running ffmpeg process
 
         // List of common video file extensions
-        private static readonly string[] VideoExtensions = { ".mp4", ".avi", ".mov", ".mkv", ".wmv", ".flv", ".webm" };
+        private static readonly string[] VideoExtensions = {
+            ".mp4", ".avi", ".mov", ".mkv", ".wmv", ".flv", ".webm",
+            ".asf", ".m4p", ".m4v", ".mpg", ".mp2", ".mpeg", ".mpe",
+            ".mpv", ".m2v", ".3gp", ".m2ts", ".ts", ".mts", "3g2"
+        };
 
         static void Main(string[] args)
         {
