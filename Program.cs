@@ -188,10 +188,15 @@ namespace FfmpegConverter
             string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName);
 
             // Build ffmpeg arguments
-            string hwaccel = enableSwDecoding ? "-hwaccel_output_format cuda " : "-hwaccel nvdec ";
-            if (!enableSwDecoding && cuvidDecoder != null)
-                hwaccel += $"-c:v {cuvidDecoder} ";
-            hwaccel += "-hwaccel_output_format cuda ";
+            string hwaccel = "";
+            if (enableSwDecoding) { hwaccel = "-hwaccel_output_format cuda "; }
+            else
+            {
+                hwaccel = "-hwaccel nvdec ";
+                if (cuvidDecoder != null)
+                    hwaccel += $"-c:v {cuvidDecoder} ";
+                hwaccel += "-hwaccel_output_format cuda ";
+            }
 
             string swthreads = enableSwDecoding ? "-threads 0 " : "";
 
