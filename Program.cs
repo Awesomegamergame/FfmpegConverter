@@ -15,12 +15,18 @@ namespace FfmpegConverter
             bool configCreated;
             var config = EncoderConfig.LoadOrCreate(out configCreated);
 
+            // Reset skip if updated
+            config.ResetSkippedVersionIfOutdated();
+
             if (configCreated)
             {
                 Console.WriteLine("Configuration file created: config.json");
                 Console.WriteLine("Please edit the file to choose your GPU vendor (nvidia/intel) and settings, then run the program again.");
                 return;
             }
+
+            // Check for update before converting
+            Updater.CheckAndPromptUpdate(config);
 
             string[] filesToConvert;
             if (args != null && args.Length > 0 && File.Exists(args[0]))
@@ -38,6 +44,8 @@ namespace FfmpegConverter
             if (filesToConvert.Length == 0)
             {
                 Console.WriteLine("No video files found to convert.");
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
                 return;
             }
 

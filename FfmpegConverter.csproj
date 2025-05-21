@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EncoderConfig.cs" />
     <Compile Include="Encoders\EncoderFactory.cs" />
     <Compile Include="Encoders\EncoderConfig.cs" />
     <Compile Include="Ffmpeg\IFfmpegHardwareEncoder.cs" />
@@ -54,6 +55,7 @@
     <Compile Include="Ffmpeg\FfmpegProcessRunner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Updater.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>

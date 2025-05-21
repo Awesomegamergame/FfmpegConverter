@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -12,6 +13,7 @@ namespace FfmpegConverter.Encoders
         [DataMember] public string GpuVendor { get; set; } = "nvidia"; // "nvidia" or "intel"
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();
         [DataMember] public IntelEncoderOptions Intel { get; set; } = new IntelEncoderOptions();
+        [DataMember] public string SkippedVersion { get; set; } = "";
 
         public static string ConfigFileName => "config.json";
 
@@ -45,6 +47,23 @@ namespace FfmpegConverter.Encoders
                     writer.Flush();
                     // Write the formatted JSON to file
                     File.WriteAllText(ConfigFileName, Encoding.UTF8.GetString(stream.ToArray()));
+                }
+            }
+        }
+
+        public void ResetSkippedVersionIfOutdated()
+        {
+            var current = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            if (!string.IsNullOrEmpty(SkippedVersion) && SkippedVersion.StartsWith("v"))
+            {
+                Version skipVer;
+                if (Version.TryParse(SkippedVersion.Substring(1), out skipVer))
+                {
+                    if (current > skipVer)
+                    {
+                        SkippedVersion = "";
+                        Save();
+                    }
                 }
             }
         }
