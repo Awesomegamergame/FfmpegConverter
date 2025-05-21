@@ -11,20 +11,23 @@ namespace FfmpegConverter.Encoders
             string decoder = "";
             switch (codecName.ToLowerInvariant())
             {
-                case "h264": decoder = "-c:v h264_qsv "; break;
+                case "h264": decoder = "h264_qsv "; break;
                 case "hevc":
-                case "h265": decoder = "-c:v hevc_qsv "; break;
-                case "mpeg2video": decoder = "-c:v mpeg2_qsv "; break;
-                case "vc1": decoder = "-c:v vc1_qsv "; break;
-                case "vp8": decoder = "-c:v vp8_qsv "; break;
-                case "vp9": decoder = "-c:v vp9_qsv "; break;
-                case "vvc": decoder = "-c:v vvc_qsv "; break;
-                case "av1": decoder = "-c:v av1_qsv "; break;
+                case "h265": decoder = "hevc_qsv "; break;
+                case "mpeg2video": decoder = "mpeg2_qsv "; break;
+                case "vc1": decoder = "vc1_qsv "; break;
+                case "vp8": decoder = "vp8_qsv "; break;
+                case "vp9": decoder = "vp9_qsv "; break;
+                case "vvc": decoder = "vvc_qsv "; break;
+                case "av1": decoder = "av1_qsv "; break;
             }
 
             string hwaccel = "-hwaccel qsv ";
+            if (decoder != null)
+                hwaccel += $"-c:v {decoder} ";
+            hwaccel += "-hwaccel_output_format qsv ";
 
-            return $" {hwaccel}{decoder}-i \"{inputFile}\" -map 0 -c:v av1_qsv -preset 7 -global_quality {options.CqValue} -b:v 0 -c:a copy -c:s copy \"{outputFile}\"";
+            return $" {hwaccel}-i \"{inputFile}\" -map 0 -c:v av1_qsv -preset 7 -vf scale_qsv=format=p010le -global_quality {options.CqValue} -c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }

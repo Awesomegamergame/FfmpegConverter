@@ -7,6 +7,6 @@ namespace FfmpegConverter.Encoders
     [DataContract]
     internal class IntelEncoderOptions
     {
-        [DataMember] public int CqValue { get; set; } = 30;
+        [DataMember] public int CqValue { get; set; } = 24;
     }
 }
