@@ -4,6 +4,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using FfmpegConverter.Encoders;
+using System.Linq;
 
 internal static class Updater
 {
@@ -44,13 +45,24 @@ internal static class Updater
                 string downloadUrl = ExtractAssetUrl(json, "FfmpegConverter.exe");
                 if (downloadUrl != null)
                 {
-                    string tempFile = Path.Combine(Path.GetTempPath(), "FfmpegConverter_update.exe");
+                    string exePath = Assembly.GetExecutingAssembly().Location;
+                    string exeDir = Path.GetDirectoryName(exePath);
+                    string exeName = Path.GetFileName(exePath);
+                    string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
+                    string newExe = Path.Combine(exeDir, "FfmpegConverter.exe");
+
+                    // Rename current exe to .old
+                    File.Move(exePath, oldExe);
+
+                    // Download new exe to the original name
                     using (var client = new WebClient())
                     {
-                        client.DownloadFile(downloadUrl, tempFile);
+                        client.DownloadFile(downloadUrl, newExe);
                     }
-                    Console.WriteLine("Launching updater...");
-                    System.Diagnostics.Process.Start(tempFile);
+
+                    Console.WriteLine("Launching updated version...");
+                    Console.ReadKey();
+                    System.Diagnostics.Process.Start(newExe, "--cleanup-old");
                     Environment.Exit(0);
                 }
             }
@@ -63,6 +75,35 @@ internal static class Updater
             // else (n): do nothing, prompt again next time
             return true;
         }
+    }
+
+    public static bool HandlePostUpdate(string[] args)
+    {
+        if (args != null && args.Contains("--cleanup-old"))
+        {
+            string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+            string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
+            try
+            {
+                if (File.Exists(oldExe))
+                    File.Delete(oldExe);
+            }
+            catch
+            {
+                Console.WriteLine("Warning: Could not delete old version.");
+            }
+
+            Console.WriteLine("Update complete. Start conversion now? (y/n): ");
+            string input = Console.ReadLine()?.Trim().ToLowerInvariant();
+            if (input != "y")
+            {
+                Console.WriteLine("Exiting. Please restart when ready.");
+                Console.WriteLine("Press any key to exit.");
+                return true; // signal to exit Main
+            }
+            // Continue to normal startup below
+        }
+        return false; // continue as normal
     }
 
     private static string ExtractJsonValue(string json, string key)

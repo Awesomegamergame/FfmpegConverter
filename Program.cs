@@ -10,6 +10,9 @@ namespace FfmpegConverter
     {
         static void Main(string[] args)
         {
+            if (Updater.HandlePostUpdate(args))
+                return;
+
             FfmpegProcessRunner.RegisterShutdownHandlers();
 
             bool configCreated;
