@@ -16,6 +16,7 @@ namespace FfmpegConverter.Encoders
                 case "h265": cuvidDecoder = "hevc_cuvid"; break;
                 case "mpeg1video": cuvidDecoder = "mpeg1_cuvid"; break;
                 case "mpeg2video": cuvidDecoder = "mpeg2_cuvid"; break;
+                case "mpeg4": cuvidDecoder = "mpeg4_cuvid"; break;
                 case "vc1": cuvidDecoder = "vc1_cuvid"; break;
                 case "vp8": cuvidDecoder = "vp8_cuvid"; break;
                 case "vp9": cuvidDecoder = "vp9_cuvid"; break;
