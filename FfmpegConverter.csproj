@@ -44,14 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EncoderFactory.cs" />
     <Compile Include="Encoders\EncoderConfig.cs" />
     <Compile Include="Encoders\IFfmpegHardwareEncoder.cs" />
     <Compile Include="Encoders\IntelQsvEncoder.cs" />
     <Compile Include="Encoders\IntelQsvEncoderOptions.cs" />
     <Compile Include="Encoders\NvidiaEncoder.cs" />
     <Compile Include="Encoders\NvidiaEncoderOptions.cs" />
+    <Compile Include="FfmpegProcessRunner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
