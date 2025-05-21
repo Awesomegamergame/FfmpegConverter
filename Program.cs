@@ -17,7 +17,7 @@ namespace FfmpegConverter
 
             if (configCreated)
             {
-                Console.WriteLine("Configuration file created: encoderconfig.json");
+                Console.WriteLine("Configuration file created: config.json");
                 Console.WriteLine("Please edit the file to choose your GPU vendor (nvidia/intel) and settings, then run the program again.");
                 return;
             }
