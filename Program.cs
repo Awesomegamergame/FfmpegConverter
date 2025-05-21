@@ -25,6 +25,8 @@ namespace FfmpegConverter
             {
                 Console.WriteLine("Configuration file created: config.json");
                 Console.WriteLine("Please edit the file to choose your GPU vendor (nvidia/intel) and settings, then run the program again.");
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
                 return;
             }
 
@@ -54,7 +56,7 @@ namespace FfmpegConverter
 
             foreach (var file in filesToConvert)
             {
-                FfmpegProcessRunner.ConvertWithFfmpeg(file, config.GpuVendor, config);
+                FfmpegProcessRunner.ConvertWithFfmpeg(file, config.Program.GpuVendor, config);
             }
 
             Console.WriteLine("Conversion complete. Press any key to exit.");

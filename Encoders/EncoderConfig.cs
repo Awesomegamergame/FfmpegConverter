@@ -8,12 +8,18 @@ using System.Xml;
 namespace FfmpegConverter.Encoders
 {
     [DataContract]
-    internal class EncoderConfig
+    internal class ProgramSettings
     {
         [DataMember] public string GpuVendor { get; set; } = "nvidia"; // "nvidia" or "intel"
+        [DataMember] public string SkippedVersion { get; set; } = "";
+    }
+
+    [DataContract]
+    internal class EncoderConfig
+    {
+        [DataMember] public ProgramSettings Program { get; set; } = new ProgramSettings();
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();
         [DataMember] public IntelEncoderOptions Intel { get; set; } = new IntelEncoderOptions();
-        [DataMember] public string SkippedVersion { get; set; } = "";
 
         public static string ConfigFileName => "config.json";
 
@@ -54,14 +60,14 @@ namespace FfmpegConverter.Encoders
         public void ResetSkippedVersionIfOutdated()
         {
             var current = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            if (!string.IsNullOrEmpty(SkippedVersion) && SkippedVersion.StartsWith("v"))
+            if (!string.IsNullOrEmpty(Program.SkippedVersion) && Program.SkippedVersion.StartsWith("v"))
             {
                 Version skipVer;
-                if (Version.TryParse(SkippedVersion.Substring(1), out skipVer))
+                if (Version.TryParse(Program.SkippedVersion.Substring(1), out skipVer))
                 {
                     if (current > skipVer)
                     {
-                        SkippedVersion = "";
+                        Program.SkippedVersion = "";
                         Save();
                     }
                 }

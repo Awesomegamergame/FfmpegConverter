@@ -33,7 +33,7 @@ internal static class Updater
                 return false;
 
             // Check if user chose to skip this version
-            if (!string.IsNullOrEmpty(config.SkippedVersion) && config.SkippedVersion == tag)
+            if (!string.IsNullOrEmpty(config.Program.SkippedVersion) && config.Program.SkippedVersion == tag)
                 return false;
 
             Console.WriteLine($"A new version is available: {tag} (current: {currentVersionTag})");
@@ -68,7 +68,7 @@ internal static class Updater
             }
             else if (input == "i")
             {
-                config.SkippedVersion = tag;
+                config.Program.SkippedVersion = tag;
                 config.Save();
                 Console.WriteLine($"You will not be prompted again for version {tag}.");
             }
