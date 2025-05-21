@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -43,6 +44,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Encoders\EncoderConfig.cs" />
+    <Compile Include="Encoders\IFfmpegHardwareEncoder.cs" />
+    <Compile Include="Encoders\IntelQsvEncoder.cs" />
+    <Compile Include="Encoders\IntelQsvEncoderOptions.cs" />
+    <Compile Include="Encoders\NvidiaEncoder.cs" />
+    <Compile Include="Encoders\NvidiaEncoderOptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

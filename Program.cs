@@ -2,20 +2,19 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices; // <-- Add this
-using System.Threading; // <-- Add this
+using System.Runtime.InteropServices;
+using FfmpegConverter.Encoders;
 
 namespace FfmpegConverter
 {
     internal class Program
     {
-        private static Process currentFfmpegProcess; // Track the running ffmpeg process
+        private static Process currentFfmpegProcess;
+        private static int lastProgressLength = 0;
 
-        // Add these fields and methods for console control handling
-        #region Trap application termination
+        // Windows console control handler
         [DllImport("Kernel32")]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
-
         private delegate bool EventHandler(CtrlType sig);
         static EventHandler _handler;
 
@@ -30,21 +29,14 @@ namespace FfmpegConverter
 
         private static bool Handler(CtrlType sig)
         {
+            Console.WriteLine("\n");
             Console.WriteLine("Exiting system due to external CTRL-C, or process kill, or shutdown");
-
-            // Kill ffmpeg if running
             KillFfmpegIfRunning();
-
             Console.WriteLine("Cleanup complete");
-
-            //shutdown right away so there are no lingering threads
             Environment.Exit(-1);
-
             return true;
         }
-        #endregion
 
-        // List of common video file extensions
         private static readonly string[] VideoExtensions = {
             ".mp4", ".avi", ".mov", ".mkv", ".wmv", ".flv", ".webm",
             ".asf", ".m4p", ".m4v", ".mpg", ".mp2", ".mpeg", ".mpe",
@@ -53,11 +45,9 @@ namespace FfmpegConverter
 
         static void Main(string[] args)
         {
-            // Register the console control handler
+            // Register shutdown handlers
             _handler += new EventHandler(Handler);
             SetConsoleCtrlHandler(_handler, true);
-
-            // Existing handlers (optional, but harmless to keep)
             Console.CancelKeyPress += (sender, e) =>
             {
                 KillFfmpegIfRunning();
@@ -68,16 +58,16 @@ namespace FfmpegConverter
                 KillFfmpegIfRunning();
             };
 
+            var config = EncoderConfig.LoadOrCreate();
+
             string[] filesToConvert;
 
             if (args != null && args.Length > 0 && File.Exists(args[0]))
             {
-                // File(s) dragged and dropped onto the executable
                 filesToConvert = args.Where(File.Exists).ToArray();
             }
             else
             {
-                // No file dropped, convert all video files in the current directory
                 string currentDir = Directory.GetCurrentDirectory();
                 filesToConvert = Directory.GetFiles(currentDir)
                     .Where(f => VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
@@ -92,7 +82,8 @@ namespace FfmpegConverter
 
             foreach (var file in filesToConvert)
             {
-                ConvertWithFfmpeg(file);
+                // Change "nvidia" to "intelqsv" to use Intel QSV
+                ConvertWithFfmpeg(file, "nvidia", config);
             }
 
             Console.WriteLine("Conversion complete. Press any key to exit.");
@@ -109,53 +100,11 @@ namespace FfmpegConverter
                     currentFfmpegProcess.WaitForExit();
                 }
             }
-            catch { /* Ignore exceptions on exit */ }
+            catch { }
         }
 
-        private static void ConvertWithFfmpeg(string inputFile)
+        private static void ConvertWithFfmpeg(string inputFile, string hardware, EncoderConfig config)
         {
-            // Defaults
-            int cqValue = 30;
-            bool enableSpatialAq = false;
-            int aqStrength = 8;
-            bool enableSwDecoding = false;
-
-            // Look for any .txt file in the current directory
-            string currentDir = Path.GetDirectoryName(inputFile);
-            string txtFile = Directory.GetFiles(currentDir, "*.txt").FirstOrDefault();
-
-            if (txtFile != null)
-            {
-                try
-                {
-                    var lines = File.ReadAllLines(txtFile);
-
-                    // First line: CQ value
-                    if (lines.Length > 0 && int.TryParse(lines[0], out int parsedCq))
-                        cqValue = parsedCq;
-
-                    // Second line: spatial-aq and aq-strength
-                    if (lines.Length > 1)
-                    {
-                        var parts = lines[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length > 0 && bool.TryParse(parts[0], out bool parsedSpatialAq))
-                            enableSpatialAq = parsedSpatialAq;
-                        if (enableSpatialAq && parts.Length > 1 && int.TryParse(parts[1], out int parsedAqStrength) && parsedAqStrength >= 1 && parsedAqStrength <= 15)
-                            aqStrength = parsedAqStrength;
-                    }
-
-                    // Third line: software decoding
-                    if (lines.Length > 2 && bool.TryParse(lines[2], out bool parsedSw))
-                        enableSwDecoding = parsedSw;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error reading config from {txtFile}: {ex.Message}");
-                    Console.WriteLine("Using default CQ and decoding settings.");
-                }
-            }
-
-            // Get video codec using ffprobe
             string codecName = "unknown";
             try
             {
@@ -177,73 +126,32 @@ namespace FfmpegConverter
                 if (!string.IsNullOrWhiteSpace(output))
                     codecName = output;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"[ffprobe error: {ex.Message}]");
+                Console.WriteLine("[ffprobe error]");
             }
 
-            // Map ffprobe codec name to cuvid decoder
-            string cuvidDecoder = null;
-            if (!enableSwDecoding)
-            {
-                switch (codecName.ToLowerInvariant())
-                {
-                    case "h264":
-                        cuvidDecoder = "h264_cuvid";
-                        break;
-                    case "hevc":
-                    case "h265":
-                        cuvidDecoder = "hevc_cuvid";
-                        break;
-                    case "mpeg1video":
-                        cuvidDecoder = "mpeg1_cuvid";
-                        break;
-                    case "mpeg2video":
-                        cuvidDecoder = "mpeg2_cuvid";
-                        break;
-                    case "vc1":
-                        cuvidDecoder = "vc1_cuvid";
-                        break;
-                    case "vp8":
-                        cuvidDecoder = "vp8_cuvid";
-                        break;
-                    case "vp9":
-                        cuvidDecoder = "vp9_cuvid";
-                        break;
-                    case "av1":
-                        cuvidDecoder = "av1_cuvid";
-                        break;
-                }
-            }
-
-            // Generate 4 random uppercase alphanumeric characters
             string randomStr = GetRandomString(4);
+            string baseName = $"{Path.GetFileNameWithoutExtension(inputFile)}-ffmpeg";
+            string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName + $"-{randomStr}.mkv");
 
-            // Output file: original name + -ffmpeg-(cq)[-aq-##]-(random).mkv
-            string baseName = $"{Path.GetFileNameWithoutExtension(inputFile)}-ffmpeg-{cqValue}";
-            if (enableSpatialAq)
-                baseName += $"-aq-{aqStrength}";
-            baseName += $"-{randomStr}.mkv";
-            string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName);
-
-            // Build ffmpeg arguments
-            string hwaccel = "";
-            if (enableSwDecoding) { hwaccel = "-hwaccel_output_format cuda "; }
+            string arguments;
+            if (hardware.Equals("nvidia", StringComparison.OrdinalIgnoreCase))
+            {
+                var options = config.Nvidia;
+                var encoder = new NvidiaEncoder();
+                arguments = encoder.BuildArguments(inputFile, outputFile, options, codecName);
+            }
+            else if (hardware.Equals("intelqsv", StringComparison.OrdinalIgnoreCase))
+            {
+                var options = config.IntelQsv;
+                var encoder = new IntelQsvEncoder();
+                arguments = encoder.BuildArguments(inputFile, outputFile, options, codecName);
+            }
             else
             {
-                hwaccel = "-hwaccel nvdec ";
-                if (cuvidDecoder != null)
-                    hwaccel += $"-c:v {cuvidDecoder} ";
-                hwaccel += "-hwaccel_output_format cuda ";
+                throw new NotSupportedException("Unknown encoder type");
             }
-
-            string swthreads = enableSwDecoding ? "-threads 0 " : "";
-
-            string aqArgs = "";
-            if (enableSpatialAq)
-                aqArgs = $"-spatial-aq 1 -aq-strength {aqStrength} ";
-
-            string arguments = $" {hwaccel}{swthreads}-i \"{inputFile}\" -map 0 -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {cqValue} -b:v 0 {aqArgs}-c:a copy -c:s copy \"{outputFile}\"";
 
             var process = new Process
             {
@@ -258,43 +166,52 @@ namespace FfmpegConverter
                 }
             };
 
-            currentFfmpegProcess = process; // Track the process
-
-            Console.WriteLine($"Converting: {inputFile}");
-            Console.WriteLine($"  CQ: {cqValue}, SW Decoding: {enableSwDecoding}, Spatial AQ: {enableSpatialAq}, AQ Strength: {(enableSpatialAq ? aqStrength.ToString() : "N/A")}");
-            Console.WriteLine($"Input video codec: {codecName}");
-
-            // Print the full ffmpeg command
-            Console.WriteLine($"ffmpeg {arguments}");
-
-            string lastStatLine = null;
-            DateTime lastPrint = DateTime.MinValue;
+            var startTime = DateTime.Now;
 
             process.ErrorDataReceived += (sender, e) =>
             {
                 if (e.Data == null) return;
-                if (e.Data.Contains("time=") || e.Data.Contains("fps="))
+                if (e.Data.Contains("frame=") && e.Data.Contains("fps=") && e.Data.Contains("time="))
                 {
-                    lastStatLine = $"[{Path.GetFileName(inputFile)}] {e.Data}";
-                    if ((DateTime.Now - lastPrint).TotalSeconds >= 2)
-                    {
-                        Console.WriteLine(lastStatLine);
-                        lastPrint = DateTime.Now;
-                    }
+                    string line = e.Data;
+                    string frame = ExtractValue(line, "frame=");
+                    string fps = ExtractValue(line, "fps=");
+                    string q = ExtractValue(line, "q=");
+                    string size = ExtractValue(line, "size=");
+                    string time = ExtractValue(line, "time=");
+                    string bitrate = ExtractValue(line, "bitrate=");
+                    string speed = ExtractValue(line, "speed=");
+                    string elapsed = (DateTime.Now - startTime).ToString(@"h\:mm\:ss\.ff");
+
+                    string fileLabel = $"[{Path.GetFileName(inputFile)}]";
+                    string progress = $"{fileLabel} frame={frame} fps={fps} q={q} size={size} time={time} bitrate={bitrate} speed={speed} elapsed={elapsed}";
+
+                    int width = Console.WindowWidth - 1;
+                    if (progress.Length > width)
+                        progress = progress.Substring(0, width);
+
+                    // Pad with spaces to clear previous content, using the max of previous and current width
+                    int padLength = Math.Max(lastProgressLength, progress.Length);
+                    string padded = progress.PadRight(padLength);
+
+                    Console.Write($"\r{padded}");
+
+                    lastProgressLength = progress.Length;
                 }
             };
+
+            currentFfmpegProcess = process;
+
+            Console.WriteLine($"Converting: {inputFile}");
+            Console.WriteLine($"ffmpeg {arguments}");
 
             process.Start();
             process.BeginErrorReadLine();
             process.WaitForExit();
 
-            currentFfmpegProcess = null; // Clear after done
+            currentFfmpegProcess = null;
 
-            // Print the last stat line if it wasn't printed in the last 5 seconds
-            if (lastStatLine != null && (DateTime.Now - lastPrint).TotalSeconds > 1)
-            {
-                Console.WriteLine(lastStatLine);
-            }
+            Console.WriteLine(); // Move to next line after progress
 
             if (process.ExitCode == 0)
             {
@@ -306,7 +223,17 @@ namespace FfmpegConverter
             }
         }
 
-        // Helper method to generate a random alphanumeric string
+        // Helper to extract value after a key (e.g., "frame=")
+        private static string ExtractValue(string line, string key)
+        {
+            int idx = line.IndexOf(key, StringComparison.Ordinal);
+            if (idx == -1) return "";
+            idx += key.Length;
+            int end = line.IndexOf(' ', idx);
+            if (end == -1) end = line.Length;
+            return line.Substring(idx, end - idx).Trim();
+        }
+
         private static string GetRandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
