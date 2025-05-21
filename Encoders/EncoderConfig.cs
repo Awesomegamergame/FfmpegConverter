@@ -11,7 +11,7 @@ namespace FfmpegConverter.Encoders
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();
         [DataMember] public IntelEncoderOptions Intel { get; set; } = new IntelEncoderOptions();
 
-        public static string ConfigFileName => "encoderconfig.json";
+        public static string ConfigFileName => "config.json";
 
         public static EncoderConfig LoadOrCreate(out bool created)
         {
