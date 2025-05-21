@@ -7,22 +7,25 @@ namespace FfmpegConverter.Encoders
     [DataContract]
     internal class EncoderConfig
     {
+        [DataMember] public string GpuVendor { get; set; } = "nvidia"; // "nvidia" or "intel"
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();
-        [DataMember] public IntelQsvEncoderOptions IntelQsv { get; set; } = new IntelQsvEncoderOptions();
+        [DataMember] public IntelEncoderOptions Intel { get; set; } = new IntelEncoderOptions();
 
         public static string ConfigFileName => "encoderconfig.json";
 
-        public static EncoderConfig LoadOrCreate()
+        public static EncoderConfig LoadOrCreate(out bool created)
         {
             if (!File.Exists(ConfigFileName))
             {
                 var config = new EncoderConfig();
                 config.Save();
+                created = true;
                 return config;
             }
             using (var stream = File.OpenRead(ConfigFileName))
             {
                 var ser = new DataContractJsonSerializer(typeof(EncoderConfig));
+                created = false;
                 return (EncoderConfig)ser.ReadObject(stream);
             }
         }

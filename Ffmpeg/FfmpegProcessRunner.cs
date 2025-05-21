@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FfmpegConverter.Encoders;
 
-namespace FfmpegConverter
+namespace FfmpegConverter.Ffmpeg
 {
     internal static class FfmpegProcessRunner
     {

@@ -1,10 +1,12 @@
+using FfmpegConverter.Ffmpeg;
+
 namespace FfmpegConverter.Encoders
 {
-    internal class IntelQsvEncoder : IFfmpegHardwareEncoder<IntelQsvEncoderOptions>
+    internal class IntelEncoder : IFfmpegHardwareEncoder<IntelEncoderOptions>
     {
-        public string Name => "IntelQSV";
+        public string Name => "Intel";
 
-        public string BuildArguments(string inputFile, string outputFile, IntelQsvEncoderOptions options, string codecName)
+        public string BuildArguments(string inputFile, string outputFile, IntelEncoderOptions options, string codecName)
         {
             string decoder = "";
             switch (codecName.ToLowerInvariant())

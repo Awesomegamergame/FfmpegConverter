@@ -1,3 +1,5 @@
+using FfmpegConverter.Ffmpeg;
+
 namespace FfmpegConverter.Encoders
 {
     internal class NvidiaEncoder : IFfmpegHardwareEncoder<NvidiaEncoderOptions>

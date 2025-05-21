@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using FfmpegConverter.Ffmpeg;
 using FfmpegConverter.Encoders;
 
 namespace FfmpegConverter
@@ -11,7 +12,15 @@ namespace FfmpegConverter
         {
             FfmpegProcessRunner.RegisterShutdownHandlers();
 
-            var config = EncoderConfig.LoadOrCreate();
+            bool configCreated;
+            var config = EncoderConfig.LoadOrCreate(out configCreated);
+
+            if (configCreated)
+            {
+                Console.WriteLine("Configuration file created: encoderconfig.json");
+                Console.WriteLine("Please edit the file to choose your GPU vendor (nvidia/intel) and settings, then run the program again.");
+                return;
+            }
 
             string[] filesToConvert;
             if (args != null && args.Length > 0 && File.Exists(args[0]))
@@ -34,8 +43,7 @@ namespace FfmpegConverter
 
             foreach (var file in filesToConvert)
             {
-                // Change "nvidia" to "intelqsv" to use Intel QSV
-                FfmpegProcessRunner.ConvertWithFfmpeg(file, "nvidia", config);
+                FfmpegProcessRunner.ConvertWithFfmpeg(file, config.GpuVendor, config);
             }
 
             Console.WriteLine("Conversion complete. Press any key to exit.");

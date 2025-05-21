@@ -1,4 +1,4 @@
-namespace FfmpegConverter.Encoders
+namespace FfmpegConverter.Ffmpeg
 {
     internal interface IFfmpegHardwareEncoder<TOptions>
     {

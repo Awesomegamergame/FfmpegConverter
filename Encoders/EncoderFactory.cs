@@ -13,8 +13,8 @@ namespace FfmpegConverter
         {
             ["nvidia"] = (input, output, config, codec) =>
                 new NvidiaEncoder().BuildArguments(input, output, config.Nvidia, codec),
-            ["intelqsv"] = (input, output, config, codec) =>
-                new IntelQsvEncoder().BuildArguments(input, output, config.IntelQsv, codec)
+            ["intel"] = (input, output, config, codec) =>
+                new IntelEncoder().BuildArguments(input, output, config.Intel, codec)
         };
 
         public static string GetArguments(string hardware, string inputFile, string outputFile, EncoderConfig config, string codecName)

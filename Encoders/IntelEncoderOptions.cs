@@ -5,7 +5,7 @@ using System.Runtime.Serialization.Json;
 namespace FfmpegConverter.Encoders
 {
     [DataContract]
-    internal class IntelQsvEncoderOptions
+    internal class IntelEncoderOptions
     {
         [DataMember] public int CqValue { get; set; } = 30;
     }
