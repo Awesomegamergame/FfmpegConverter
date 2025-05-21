@@ -1,6 +1,8 @@
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Xml;
 
 namespace FfmpegConverter.Encoders
 {
@@ -32,10 +34,18 @@ namespace FfmpegConverter.Encoders
 
         public void Save()
         {
-            using (var stream = File.Create(ConfigFileName))
+            var ser = new DataContractJsonSerializer(typeof(EncoderConfig));
+            using (var stream = new MemoryStream())
             {
-                var ser = new DataContractJsonSerializer(typeof(EncoderConfig));
-                ser.WriteObject(stream, this);
+                // Create an indented JSON writer
+                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(
+                    stream, Encoding.UTF8, ownsStream: false, indent: true))
+                {
+                    ser.WriteObject(writer, this);
+                    writer.Flush();
+                    // Write the formatted JSON to file
+                    File.WriteAllText(ConfigFileName, Encoding.UTF8.GetString(stream.ToArray()));
+                }
             }
         }
     }
