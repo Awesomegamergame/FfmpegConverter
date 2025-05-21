@@ -15,6 +15,11 @@ namespace FfmpegConverter.Encoders
                 case "hevc":
                 case "h265": decoder = "-c:v hevc_qsv "; break;
                 case "mpeg2video": decoder = "-c:v mpeg2_qsv "; break;
+                case "vc1": decoder = "-c:v vc1_qsv "; break;
+                case "vp8": decoder = "-c:v vp8_qsv "; break;
+                case "vp9": decoder = "-c:v vp9_qsv "; break;
+                case "vvc": decoder = "-c:v vvc_qsv "; break;
+                case "av1": decoder = "-c:v av1_qsv "; break;
             }
 
             string hwaccel = "-hwaccel qsv ";
