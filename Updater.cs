@@ -79,7 +79,7 @@ internal static class Updater
 
     public static bool HandlePostUpdate(string[] args)
     {
-        if (args != null && !args.Contains("--cleanup-old"))
+        if (args != null && args.Contains("--cleanup-old"))
         {
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
             string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
