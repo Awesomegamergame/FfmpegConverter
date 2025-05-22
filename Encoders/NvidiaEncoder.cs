@@ -30,7 +30,7 @@ namespace FfmpegConverter.Encoders
 
             string aqArgs = options.EnableSpatialAq ? $"-spatial-aq 1 -aq-strength {options.AqStrength} " : "";
 
-            return $" {hwaccel}-i \"{inputFile}\" -map 0 -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqArgs}-c:a copy -c:s copy \"{outputFile}\"";
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqArgs}-c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }
