@@ -3,6 +3,9 @@ on:
   push:
     tags:
       - "v*.*.*"
+permissions:
+  contents: write
+      
 jobs:
   build:
     runs-on: windows-latest
@@ -17,4 +20,4 @@ jobs:
       uses: softprops/action-gh-release@v2.2.2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: .\bin\Release\FfmpegConverter.exe
+        files: bin/Release/FfmpegConverter.exe
