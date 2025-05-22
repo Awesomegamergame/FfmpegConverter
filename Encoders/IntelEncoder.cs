@@ -29,7 +29,17 @@ namespace FfmpegConverter.Encoders
 
             string tenBitDepthArgs = options.EnableTenBit ? "-vf scale_qsv=format=p010le" : "";
 
-            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 {tenBitDepthArgs} -q:v {options.CqpValue} -c:a copy -c:s copy \"{outputFile}\"";
+            string qualityArgs;
+            if (options.QualityMode == IntelQualityMode.ICQ)
+            {
+                qualityArgs = $"-global_quality {options.IcqValue} -look_ahead 1";
+            }
+            else // CQP
+            {
+                qualityArgs = $"-q:v {options.CqpValue}";
+            }
+
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 {tenBitDepthArgs} {qualityArgs} -c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }

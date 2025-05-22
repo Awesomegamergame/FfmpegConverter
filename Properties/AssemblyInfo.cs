@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FfmpegConverter")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("File converter to av1 mkv files with gpu acceleration using ffmpeg")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AGG Productions")]
 [assembly: AssemblyProduct("FfmpegConverter")]
