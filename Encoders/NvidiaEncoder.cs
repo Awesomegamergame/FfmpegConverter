@@ -28,9 +28,11 @@ namespace FfmpegConverter.Encoders
                 hwaccel += $"-c:v {cuvidDecoder} ";
             hwaccel += "-hwaccel_output_format cuda ";
 
-            string aqArgs = options.EnableSpatialAq ? $"-spatial-aq 1 -aq-strength {options.AqStrength} " : "";
+            string tenBitDepthArgs = options.EnableTenBit ? "-highbitdepth true" : "";
+            string aqSpatialArgs = options.EnableSpatialAq ? $"-spatial-aq 1 -aq-strength {options.AqStrength}" : "";
+            string aqTemporalArgs = options.EnableTemporalAq ? "-temporal-aq 1" : "";
 
-            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_nvenc -highbitdepth true -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqArgs}-c:a copy -c:s copy \"{outputFile}\"";
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_nvenc {tenBitDepthArgs} -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqSpatialArgs} {aqTemporalArgs} -c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }

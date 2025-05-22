@@ -27,7 +27,7 @@ namespace FfmpegConverter.Encoders
                 hwaccel += $"-c:v {decoder} ";
             hwaccel += "-hwaccel_output_format qsv ";
 
-            return $" {hwaccel}-i \"{inputFile}\" -map 0 -c:v av1_qsv -preset 7 -vf scale_qsv=format=p010le -global_quality {options.CqValue} -c:a copy -c:s copy \"{outputFile}\"";
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 -vf scale_qsv=format=p010le -q:v {options.CqpValue} -c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }
