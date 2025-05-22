@@ -27,7 +27,9 @@ namespace FfmpegConverter.Encoders
                 hwaccel += $"-c:v {decoder} ";
             hwaccel += "-hwaccel_output_format qsv ";
 
-            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 -vf scale_qsv=format=p010le -q:v {options.CqpValue} -c:a copy -c:s copy \"{outputFile}\"";
+            string tenBitDepthArgs = options.EnableTenBit ? "-vf scale_qsv=format=p010le" : "";
+
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 {tenBitDepthArgs} -q:v {options.CqpValue} -c:a copy -c:s copy \"{outputFile}\"";
         }
     }
 }

@@ -8,6 +8,6 @@ namespace FfmpegConverter.Encoders
     internal class IntelEncoderOptions
     {
         [DataMember] public int CqpValue { get; set; } = 40;
-
+        [DataMember] public bool EnableTenBit { get; set; } = true;
     }
 }
