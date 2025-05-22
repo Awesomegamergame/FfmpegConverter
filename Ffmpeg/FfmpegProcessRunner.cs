@@ -119,9 +119,13 @@ namespace FfmpegConverter.Ffmpeg
 
             var startTime = DateTime.Now;
 
+            var errorOutput = new System.Text.StringBuilder();
+
             process.ErrorDataReceived += (sender, e) =>
             {
                 if (e.Data == null) return;
+                errorOutput.AppendLine(e.Data);
+
                 if (e.Data.Contains("frame=") && e.Data.Contains("fps=") && e.Data.Contains("time="))
                 {
                     string line = e.Data;
@@ -152,7 +156,7 @@ namespace FfmpegConverter.Ffmpeg
 
             currentFfmpegProcess = process;
 
-            Console.WriteLine($"Converting: {inputFile}");
+            Console.WriteLine($"Converting: {inputFile} \n");
             Console.WriteLine($"ffmpeg {arguments}");
 
             process.Start();
@@ -170,6 +174,16 @@ namespace FfmpegConverter.Ffmpeg
             else
             {
                 Console.WriteLine($"Error converting {inputFile}");
+                // Write error output and command to a log file
+                var logFile = outputFile + ".log";
+                var logContent = new System.Text.StringBuilder();
+                logContent.AppendLine("ffmpeg command used:");
+                logContent.AppendLine($"ffmpeg {arguments}");
+                logContent.AppendLine();
+                logContent.AppendLine("ffmpeg output:");
+                logContent.AppendLine(errorOutput.ToString());
+                File.WriteAllText(logFile, logContent.ToString());
+                Console.WriteLine($"ffmpeg output written to: {logFile}");
             }
         }
     }
