@@ -79,7 +79,7 @@ internal static class Updater
 
     public static bool HandlePostUpdate(string[] args)
     {
-        if (args != null && args.Contains("--cleanup-old"))
+        if (args != null && !args.Contains("--cleanup-old"))
         {
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
             string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
@@ -93,14 +93,21 @@ internal static class Updater
                 Console.WriteLine("Warning: Could not delete old version.");
             }
 
-            Console.WriteLine("Update complete. Start conversion now? (y/n): ");
-            string input = Console.ReadLine()?.Trim().ToLowerInvariant();
-            if (input != "y")
+            //Rename config.json to config.old.json
+            string configFile = Path.Combine(exeDir, EncoderConfig.ConfigFileName);
+            string oldConfigFile = Path.Combine(exeDir, "config.old.json");
+            try
             {
-                Console.WriteLine("Exiting. Please restart when ready.");
-                Console.WriteLine("Press any key to exit.");
-                return true; // signal to exit Main
+                if (File.Exists(configFile))
+                    File.Move(configFile, oldConfigFile);
             }
+            catch
+            {
+                Console.WriteLine("Warning: Could not rename config file.");
+                Console.WriteLine("It's reccomended to remove your config and allow the program to create a new one.");
+            }
+
+            Console.WriteLine("Update complete.");
             // Continue to normal startup below
         }
         return false; // continue as normal

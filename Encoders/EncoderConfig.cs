@@ -10,7 +10,6 @@ namespace FfmpegConverter.Encoders
     [DataContract]
     internal class ProgramSettings
     {
-        [DataMember] public string GpuVendor { get; set; } = "nvidia"; // "nvidia" or "intel"
         [DataMember] public string SkippedVersion { get; set; } = "";
     }
 

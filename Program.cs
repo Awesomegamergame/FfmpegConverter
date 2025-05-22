@@ -24,10 +24,23 @@ namespace FfmpegConverter
             if (configCreated)
             {
                 Console.WriteLine("Configuration file created: config.json");
-                Console.WriteLine("Please edit the file to choose your GPU vendor (nvidia/intel) and settings, then run the program again.");
-                Console.WriteLine("Press any key to exit.");
+                Console.WriteLine("You can edit the file for advanced settings if needed.");
+                Console.WriteLine("Press any key to continue.");
                 Console.ReadKey();
-                return;
+            }
+
+            // Prompt for GPU vendor
+            string gpuVendor = null;
+            while (gpuVendor == null)
+            {
+                Console.Write("Select GPU vendor ([n]vidia / [i]ntel): ");
+                var input = Console.ReadLine()?.Trim().ToLowerInvariant();
+                if (input == "n" || input == "nvidia")
+                    gpuVendor = "nvidia";
+                else if (input == "i" || input == "intel")
+                    gpuVendor = "intel";
+                else
+                    Console.WriteLine("Invalid input. Please enter 'n' for Nvidia or 'i' for Intel.");
             }
 
             // Check for update before converting
@@ -56,7 +69,7 @@ namespace FfmpegConverter
 
             foreach (var file in filesToConvert)
             {
-                FfmpegProcessRunner.ConvertWithFfmpeg(file, config.Program.GpuVendor, config);
+                FfmpegProcessRunner.ConvertWithFfmpeg(file, gpuVendor, config);
             }
 
             Console.WriteLine("Conversion complete. Press any key to exit.");
