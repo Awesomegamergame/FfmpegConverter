@@ -8,13 +8,13 @@ using System.Xml;
 namespace FfmpegConverter.Encoders
 {
     [DataContract]
-    internal class ProgramSettings
+    public class ProgramSettings
     {
         [DataMember] public string SkippedVersion { get; set; } = "";
     }
 
     [DataContract]
-    internal class EncoderConfig
+    public class EncoderConfig
     {
         [DataMember] public ProgramSettings Program { get; set; } = new ProgramSettings();
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();

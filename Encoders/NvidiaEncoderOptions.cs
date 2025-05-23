@@ -5,7 +5,7 @@ using System.Runtime.Serialization.Json;
 namespace FfmpegConverter.Encoders
 {
     [DataContract]
-    internal class NvidiaEncoderOptions
+    public class NvidiaEncoderOptions
     {
         [DataMember] public int CqValue { get; set; } = 30;
         [DataMember] public bool EnableTenBit { get; set; } = true;

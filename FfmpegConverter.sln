@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FfmpegConverter", "FfmpegConverter.csproj", "{FDC202C0-D1F9-4F2A-BD01-81CB11C337C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConverterUI", "..\ConverterUI\ConverterUI.csproj", "{E3F93321-BF23-46F4-AB2B-FBD1DAC7A18F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConverterUI", ".\ConverterUI\ConverterUI.csproj", "{E3F93321-BF23-46F4-AB2B-FBD1DAC7A18F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

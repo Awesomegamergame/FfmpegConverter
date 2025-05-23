@@ -47,7 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EncoderConfig.cs" />
     <Compile Include="Encoders\EncoderFactory.cs" />
     <Compile Include="Encoders\EncoderConfig.cs" />
     <Compile Include="Ffmpeg\IFfmpegHardwareEncoder.cs" />
@@ -67,11 +66,6 @@
   <ItemGroup>
     <None Include="Icon\Icon.ico" />
     <None Include="Icon\Icon.svg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

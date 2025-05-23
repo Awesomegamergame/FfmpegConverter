@@ -6,7 +6,7 @@ using System.Text;
 using FfmpegConverter.Encoders;
 using System.Linq;
 
-internal static class Updater
+public static class Updater
 {
     public static bool CheckAndPromptUpdate(EncoderConfig config)
     {

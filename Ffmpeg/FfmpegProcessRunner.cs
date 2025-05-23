@@ -6,7 +6,7 @@ using FfmpegConverter.Encoders;
 
 namespace FfmpegConverter.Ffmpeg
 {
-    internal static class FfmpegProcessRunner
+    public static class FfmpegProcessRunner
     {
         private static Process currentFfmpegProcess;
         private static int lastProgressLength = 0;
@@ -70,7 +70,11 @@ namespace FfmpegConverter.Ffmpeg
             catch { }
         }
 
-        public static void ConvertWithFfmpeg(string inputFile, string hardware, EncoderConfig config)
+        public static void ConvertWithFfmpeg(
+            string inputFile,
+            string hardware,
+            EncoderConfig config,
+            Action<string> progressCallback = null)
         {
             string codecName = "unknown";
             try
@@ -126,6 +130,12 @@ namespace FfmpegConverter.Ffmpeg
                 if (e.Data == null) return;
                 errorOutput.AppendLine(e.Data);
 
+                // Always append the raw ffmpeg output to the UI
+                progressCallback?.Invoke(e.Data + Environment.NewLine);
+
+                // Optionally, you can still parse and format progress lines if you want a summary/progress bar
+                // but always append the raw line for full log visibility
+
                 if (e.Data.Contains("frame=") && e.Data.Contains("fps=") && e.Data.Contains("time="))
                 {
                     string line = e.Data;
@@ -141,14 +151,30 @@ namespace FfmpegConverter.Ffmpeg
                     string fileLabel = $"[{Path.GetFileName(inputFile)}]";
                     string progress = $"{fileLabel} frame={frame} fps={fps} q={q} size={size} time={time} bitrate={bitrate} speed={speed} elapsed={elapsed}";
 
-                    int width = Console.WindowWidth - 1;
+                    int width = 80; // Default width
+                    try
+                    {
+                        if (!Console.IsOutputRedirected)
+                        {
+                            width = Console.WindowWidth - 1;
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        // Handle the case where the console is not available
+                        width = 80; // Fallback to a default width
+                    }
+
                     if (progress.Length > width)
                         progress = progress.Substring(0, width);
 
                     int padLength = Math.Max(lastProgressLength, progress.Length);
                     string padded = progress.PadRight(padLength);
 
-                    Console.Write($"\r{padded}");
+                    if (progressCallback != null)
+                        progressCallback(padded + Environment.NewLine);
+                    else
+                        Console.Write($"\r{padded}");
 
                     lastProgressLength = progress.Length;
                 }
