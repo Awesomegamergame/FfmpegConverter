@@ -14,7 +14,7 @@ namespace FfmpegConverter.Encoders
     }
 
     [DataContract]
-    internal class EncoderConfig
+    internal class  EncoderConfig
     {
         [DataMember] public ProgramSettings Program { get; set; } = new ProgramSettings();
         [DataMember] public NvidiaEncoderOptions Nvidia { get; set; } = new NvidiaEncoderOptions();
@@ -22,16 +22,26 @@ namespace FfmpegConverter.Encoders
 
         public static string ConfigFileName => "config.json";
 
+        public static string ConfigFilePath
+        {
+            get
+            {
+                var exeDir = AppDomain.CurrentDomain.BaseDirectory;
+                return Path.Combine(exeDir, ConfigFileName);
+            }
+        }
+
         public static EncoderConfig LoadOrCreate(out bool created)
         {
-            if (!File.Exists(ConfigFileName))
+            var configPath = ConfigFilePath;
+            if (!File.Exists(configPath))
             {
                 var config = new EncoderConfig();
                 config.Save();
                 created = true;
                 return config;
             }
-            using (var stream = File.OpenRead(ConfigFileName))
+            using (var stream = File.OpenRead(configPath))
             {
                 var ser = new DataContractJsonSerializer(typeof(EncoderConfig));
                 created = false;
@@ -51,7 +61,7 @@ namespace FfmpegConverter.Encoders
                     ser.WriteObject(writer, this);
                     writer.Flush();
                     // Write the formatted JSON to file
-                    File.WriteAllText(ConfigFileName, Encoding.UTF8.GetString(stream.ToArray()));
+                    File.WriteAllText(ConfigFilePath, Encoding.UTF8.GetString(stream.ToArray()));
                 }
             }
         }
