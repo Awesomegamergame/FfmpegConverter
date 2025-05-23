@@ -8,14 +8,14 @@ namespace FfmpegConverter.Encoders
 
         public string BuildArguments(string inputFile, string outputFile, IntelEncoderOptions options, string codecName)
         {
-            string decoder = "";
+            string decoder = null;
             switch (codecName.ToLowerInvariant())
             {
                 case "h264": decoder = "h264_qsv "; break;
                 case "hevc":
                 case "h265": decoder = "hevc_qsv "; break;
                 case "mpeg2video": decoder = "mpeg2_qsv "; break;
-                case "vc1": decoder = "vc1_qsv "; break;
+                case "vc-1": decoder = "vc1_qsv "; break;
                 case "vp8": decoder = "vp8_qsv "; break;
                 case "vp9": decoder = "vp9_qsv "; break;
                 case "vvc": decoder = "vvc_qsv "; break;
