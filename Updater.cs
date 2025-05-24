@@ -61,7 +61,6 @@ internal static class Updater
                     }
 
                     Console.WriteLine("Launching updated version...");
-                    Console.ReadKey();
                     System.Diagnostics.Process.Start(newExe, "--cleanup-old");
                     Environment.Exit(0);
                 }

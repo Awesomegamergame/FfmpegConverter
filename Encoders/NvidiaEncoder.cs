@@ -1,4 +1,5 @@
 using FfmpegConverter.Ffmpeg;
+using System;
 
 namespace FfmpegConverter.Encoders
 {
@@ -8,6 +9,7 @@ namespace FfmpegConverter.Encoders
 
         public string BuildArguments(string inputFile, string outputFile, NvidiaEncoderOptions options, string codecName)
         {
+
             string cuvidDecoder = null;
             switch (codecName.ToLowerInvariant())
             {
@@ -17,15 +19,24 @@ namespace FfmpegConverter.Encoders
                 case "mpeg1video": cuvidDecoder = "mpeg1_cuvid"; break;
                 case "mpeg2video": cuvidDecoder = "mpeg2_cuvid"; break;
                 case "mpeg4": cuvidDecoder = "mpeg4_cuvid"; break;
-                case "vc-1": cuvidDecoder = "vc1_cuvid"; break;
+                case "vc1": cuvidDecoder = "vc1_cuvid"; break;
                 case "vp8": cuvidDecoder = "vp8_cuvid"; break;
                 case "vp9": cuvidDecoder = "vp9_cuvid"; break;
                 case "av1": cuvidDecoder = "av1_cuvid"; break;
             }
 
-            string hwaccel = "-hwaccel nvdec ";
+            string hwaccel = "";
             if (cuvidDecoder != null)
+            {
+                hwaccel += "-hwaccel nvdec ";
                 hwaccel += $"-c:v {cuvidDecoder} ";
+            }
+            else
+            {
+                Console.WriteLine("CPU Decoding Video");
+                hwaccel += $"-threads {FfmpegConverter.Utils.GetPhysicalCoreCount()} ";
+            }
+            
             hwaccel += "-hwaccel_output_format cuda ";
 
             string tenBitDepthArgs = options.EnableTenBit ? "-highbitdepth true" : "";
