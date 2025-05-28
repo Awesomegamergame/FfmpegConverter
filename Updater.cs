@@ -108,7 +108,10 @@ internal static class Updater
             }
 
             Console.WriteLine("Update complete.");
-            // Continue to normal startup below
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+            Environment.Exit(0);
+            // End program after update so they can edit the config and select files to use.
         }
         return false; // continue as normal
     }
