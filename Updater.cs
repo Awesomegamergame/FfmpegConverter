@@ -107,6 +107,10 @@ internal static class Updater
                 Console.WriteLine("It's reccomended to remove your config and allow the program to create a new one.");
             }
 
+            // Create a new config file
+            bool created;
+            var config = EncoderConfig.LoadOrCreate(out created);
+
             Console.WriteLine("Update complete.");
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
