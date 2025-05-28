@@ -39,6 +39,7 @@ internal static class Updater
             Console.WriteLine($"A new version is available: {tag} (current: {currentVersionTag})");
             Console.Write("Update now? (y = yes, n = no, i = ignore this version): ");
             string input = Console.ReadLine()?.Trim().ToLowerInvariant();
+            Console.WriteLine();
 
             if (input == "y")
             {

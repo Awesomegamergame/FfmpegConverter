@@ -145,19 +145,20 @@ namespace FfmpegConverter.Ffmpeg
                     if (progress.Length > width)
                         progress = progress.Substring(0, width);
 
-                    int padLength = Math.Max(lastProgressLength, progress.Length);
-                    string padded = progress.PadRight(padLength);
+                    // Always pad to the full width to clear any leftover characters
+                    string padded = progress.PadRight(width);
 
                     Console.Write($"\r{padded}");
 
-                    lastProgressLength = progress.Length;
+                    // Track the last width used, not the progress length
+                    lastProgressLength = width;
                 }
             };
 
             currentFfmpegProcess = process;
 
             Console.WriteLine($"Converting: {inputFile} \n");
-            Console.WriteLine($"ffmpeg {arguments}");
+            Console.WriteLine($"ffmpeg {arguments} \n");
 
             process.Start();
             process.BeginErrorReadLine();
@@ -169,11 +170,15 @@ namespace FfmpegConverter.Ffmpeg
 
             if (process.ExitCode == 0)
             {
-                Console.WriteLine($"Success: {outputFile}");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Success: {outputFile} \n");
+                Console.ResetColor();
             }
             else
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error converting {inputFile}");
+                Console.ResetColor();
                 // Write error output and command to a log file
                 var logFile = outputFile + ".log";
                 var logContent = new System.Text.StringBuilder();

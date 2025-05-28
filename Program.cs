@@ -21,12 +21,16 @@ namespace FfmpegConverter
             // Reset skip if updated
             config.ResetSkippedVersionIfOutdated();
 
+            // Check for update before converting
+            Updater.CheckAndPromptUpdate(config);
+
             if (configCreated)
             {
                 Console.WriteLine("Configuration file created: config.json");
                 Console.WriteLine("You can edit the file for advanced settings if needed.");
                 Console.WriteLine("Press any key to continue.");
                 Console.ReadKey();
+                Console.WriteLine();
             }
 
             // Prompt for GPU vendor
@@ -42,9 +46,7 @@ namespace FfmpegConverter
                 else
                     Console.WriteLine("Invalid input. Please enter 'n' for Nvidia or 'i' for Intel.");
             }
-
-            // Check for update before converting
-            Updater.CheckAndPromptUpdate(config);
+            Console.WriteLine();
 
             string[] filesToConvert;
             if (args != null && args.Length > 0 && File.Exists(args[0]))
@@ -72,7 +74,9 @@ namespace FfmpegConverter
                 FfmpegProcessRunner.ConvertWithFfmpeg(file, gpuVendor, config);
             }
 
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Conversion complete. Press any key to exit.");
+            Console.ResetColor();
             Console.ReadKey();
         }
     }
