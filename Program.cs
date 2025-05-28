@@ -69,13 +69,23 @@ namespace FfmpegConverter
                 return;
             }
 
+            int errorCount = 0;
             foreach (var file in filesToConvert)
             {
-                FfmpegProcessRunner.ConvertWithFfmpeg(file, gpuVendor, config);
+                bool success = FfmpegProcessRunner.ConvertWithFfmpeg(file, gpuVendor, config);
+                if (!success)
+                    errorCount++;
             }
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Conversion complete. Press any key to exit.");
+            Console.WriteLine("Conversion complete.");
+            if (errorCount > 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{errorCount} file(s) failed to convert.");
+            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Press any key to exit.");
             Console.ResetColor();
             Console.ReadKey();
         }

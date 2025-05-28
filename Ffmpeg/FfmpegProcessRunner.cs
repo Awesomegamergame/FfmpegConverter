@@ -70,7 +70,7 @@ namespace FfmpegConverter.Ffmpeg
             catch { }
         }
 
-        public static void ConvertWithFfmpeg(string inputFile, string hardware, EncoderConfig config)
+        public static bool ConvertWithFfmpeg(string inputFile, string hardware, EncoderConfig config)
         {
             string codecName = "unknown";
             try
@@ -173,6 +173,7 @@ namespace FfmpegConverter.Ffmpeg
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Success: {outputFile} \n");
                 Console.ResetColor();
+                return true;
             }
             else
             {
@@ -188,7 +189,8 @@ namespace FfmpegConverter.Ffmpeg
                 logContent.AppendLine("ffmpeg output:");
                 logContent.AppendLine(errorOutput.ToString());
                 File.WriteAllText(logFile, logContent.ToString());
-                Console.WriteLine($"ffmpeg output written to: {logFile}");
+                Console.WriteLine($"ffmpeg output written to: {logFile} \n");
+                return false;
             }
         }
     }
