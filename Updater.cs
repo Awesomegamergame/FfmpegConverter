@@ -14,66 +14,76 @@ internal static class Updater
         Version currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
         string currentVersionTag = "v" + currentVersion.ToString(3); // e.g. v1.1.0
 
-        var request = (HttpWebRequest)WebRequest.Create(apiUrl);
-        request.UserAgent = "request";
-        using (var response = (HttpWebResponse)request.GetResponse())
-        using (var stream = response.GetResponseStream())
-        using (var reader = new StreamReader(stream, Encoding.UTF8))
+        try
         {
-            string json = reader.ReadToEnd();
-            string tag = ExtractJsonValue(json, "tag_name");
-            if (string.IsNullOrEmpty(tag) || tag == currentVersionTag)
-                return false;
-
-            Version latestVersion = null;
-            if (tag.StartsWith("v", StringComparison.OrdinalIgnoreCase))
-                Version.TryParse(tag.Substring(1), out latestVersion);
-
-            if (latestVersion == null || latestVersion <= currentVersion)
-                return false;
-
-            // Check if user chose to skip this version
-            if (!string.IsNullOrEmpty(config.Program.SkippedVersion) && config.Program.SkippedVersion == tag)
-                return false;
-
-            Console.WriteLine($"A new version is available: {tag} (current: {currentVersionTag})");
-            Console.Write("Update now? (y = yes, n = no, i = ignore this version): ");
-            string input = Console.ReadLine()?.Trim().ToLowerInvariant();
-            Console.WriteLine();
-
-            if (input == "y")
+            var request = (HttpWebRequest)WebRequest.Create(apiUrl);
+            request.UserAgent = "request";
+            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var stream = response.GetResponseStream())
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
             {
-                string downloadUrl = ExtractAssetUrl(json, "FfmpegConverter.exe");
-                if (downloadUrl != null)
+                string json = reader.ReadToEnd();
+                string tag = ExtractJsonValue(json, "tag_name");
+                if (string.IsNullOrEmpty(tag) || tag == currentVersionTag)
+                    return false;
+
+                Version latestVersion = null;
+                if (tag.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                    Version.TryParse(tag.Substring(1), out latestVersion);
+
+                if (latestVersion == null || latestVersion <= currentVersion)
+                    return false;
+
+                // Check if user chose to skip this version
+                if (!string.IsNullOrEmpty(config.Program.SkippedVersion) && config.Program.SkippedVersion == tag)
+                    return false;
+
+                Console.WriteLine($"A new version is available: {tag} (current: {currentVersionTag})");
+                Console.Write("Update now? (y = yes, n = no, i = ignore this version): ");
+                string input = Console.ReadLine()?.Trim().ToLowerInvariant();
+                Console.WriteLine();
+
+                if (input == "y")
                 {
-                    string exePath = Assembly.GetExecutingAssembly().Location;
-                    string exeDir = Path.GetDirectoryName(exePath);
-                    string exeName = Path.GetFileName(exePath);
-                    string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
-                    string newExe = Path.Combine(exeDir, "FfmpegConverter.exe");
-
-                    // Rename current exe to .old
-                    File.Move(exePath, oldExe);
-
-                    // Download new exe to the original name
-                    using (var client = new WebClient())
+                    string downloadUrl = ExtractAssetUrl(json, "FfmpegConverter.exe");
+                    if (downloadUrl != null)
                     {
-                        client.DownloadFile(downloadUrl, newExe);
-                    }
+                        string exePath = Assembly.GetExecutingAssembly().Location;
+                        string exeDir = Path.GetDirectoryName(exePath);
+                        string exeName = Path.GetFileName(exePath);
+                        string oldExe = Path.Combine(exeDir, "FfmpegConverter.old.exe");
+                        string newExe = Path.Combine(exeDir, "FfmpegConverter.exe");
 
-                    Console.WriteLine("Launching updated version...");
-                    System.Diagnostics.Process.Start(newExe, "--cleanup-old");
-                    Environment.Exit(0);
+                        // Rename current exe to .old
+                        File.Move(exePath, oldExe);
+
+                        // Download new exe to the original name
+                        using (var client = new WebClient())
+                        {
+                            client.DownloadFile(downloadUrl, newExe);
+                        }
+
+                        Console.WriteLine("Launching updated version...");
+                        System.Diagnostics.Process.Start(newExe, "--cleanup-old");
+                        Environment.Exit(0);
+                    }
                 }
+                else if (input == "i")
+                {
+                    config.Program.SkippedVersion = tag;
+                    config.Save();
+                    Console.WriteLine($"You will not be prompted again for version {tag}.");
+                }
+                // else (n): do nothing, prompt again next time
+                return true;
             }
-            else if (input == "i")
-            {
-                config.Program.SkippedVersion = tag;
-                config.Save();
-                Console.WriteLine($"You will not be prompted again for version {tag}.");
-            }
-            // else (n): do nothing, prompt again next time
-            return true;
+        }
+        catch (Exception)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Error checking for updates. Please try again later.");
+            Console.ResetColor();
+            return false;
         }
     }
 
