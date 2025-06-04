@@ -48,40 +48,7 @@ namespace FfmpegConverter
             }
             Console.WriteLine();
 
-            string[] filesToConvert;
-            if (args != null && args.Length > 0)
-            {
-                var folderArg = args.FirstOrDefault(Directory.Exists);
-                if (folderArg != null)
-                {
-                    var searchOption = config.Program.SearchSubdirectories
-                        ? SearchOption.AllDirectories
-                        : SearchOption.TopDirectoryOnly;
-
-                    filesToConvert = Directory.GetFiles(folderArg, "*.*", searchOption)
-                        .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
-                        .ToArray();
-                }
-                else if (args.Any(File.Exists))
-                {
-                    filesToConvert = args.Where(File.Exists).ToArray();
-                }
-                else
-                {
-                    filesToConvert = new string[0];
-                }
-            }
-            else
-            {
-                string currentDir = Directory.GetCurrentDirectory();
-                var searchOption = config.Program.SearchSubdirectories
-                    ? SearchOption.AllDirectories
-                    : SearchOption.TopDirectoryOnly;
-
-                filesToConvert = Directory.GetFiles(currentDir, "*.*", searchOption)
-                    .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
-                    .ToArray();
-            }
+            string[] filesToConvert = Utils.FindFiles(args, config);
 
             if (filesToConvert.Length == 0)
             {

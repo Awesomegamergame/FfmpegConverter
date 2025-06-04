@@ -1,4 +1,8 @@
+using FfmpegConverter.Encoders;
+using FfmpegConverter.Ffmpeg;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management;
 
@@ -42,6 +46,43 @@ namespace FfmpegConverter
             {
                 // Fallback to logical processor count if WMI fails
                 return Environment.ProcessorCount;
+            }
+        }
+
+        public static string[] FindFiles(string[] args, EncoderConfig config)
+        {
+            if (args != null && args.Length > 0)
+            {
+                var folderArgs = args.Where(Directory.Exists).ToArray();
+                var fileArgs = args.Where(File.Exists).ToArray();
+
+                var files = new List<string>();
+                var searchOption = config.Program.SearchSubdirectories
+                    ? SearchOption.AllDirectories
+                    : SearchOption.TopDirectoryOnly;
+
+                foreach (var folder in folderArgs)
+                {
+                    files.AddRange(
+                        Directory.GetFiles(folder, "*.*", searchOption)
+                            .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                    );
+                }
+
+                files.AddRange(fileArgs);
+
+                return files.ToArray();
+            }
+            else
+            {
+                string currentDir = Directory.GetCurrentDirectory();
+                var searchOption = config.Program.SearchSubdirectories
+                    ? SearchOption.AllDirectories
+                    : SearchOption.TopDirectoryOnly;
+
+                return Directory.GetFiles(currentDir, "*.*", searchOption)
+                    .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                    .ToArray();
             }
         }
     }
