@@ -11,6 +11,7 @@ namespace FfmpegConverter.Encoders
     internal class ProgramSettings
     {
         [DataMember] public string SkippedVersion { get; set; } = "";
+        [DataMember] public bool SearchSubdirectories { get; set; } = false;
     }
 
     [DataContract]
