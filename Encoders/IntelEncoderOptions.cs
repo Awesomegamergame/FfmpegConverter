@@ -34,5 +34,6 @@ namespace FfmpegConverter.Encoders
         }
 
         [DataMember] public bool EnableTenBit { get; set; } = true;
+        [DataMember] public bool ForceCpuDecode { get; set; } = false;
     }
 }

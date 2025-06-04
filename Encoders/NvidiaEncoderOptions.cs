@@ -12,5 +12,6 @@ namespace FfmpegConverter.Encoders
         [DataMember] public bool EnableSpatialAq { get; set; } = false;
         [DataMember] public int AqStrength { get; set; } = 8;
         [DataMember] public bool EnableTemporalAq { get; set; } = false;
+        [DataMember] public bool ForceCpuDecode { get; set; } = false;
     }
 }

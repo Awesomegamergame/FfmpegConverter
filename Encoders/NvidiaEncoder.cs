@@ -9,7 +9,6 @@ namespace FfmpegConverter.Encoders
 
         public string BuildArguments(string inputFile, string outputFile, NvidiaEncoderOptions options, string codecName)
         {
-
             string cuvidDecoder = null;
             switch (codecName.ToLowerInvariant())
             {
@@ -26,7 +25,7 @@ namespace FfmpegConverter.Encoders
             }
 
             string hwaccel = "";
-            if (cuvidDecoder != null)
+            if (!options.ForceCpuDecode && cuvidDecoder != null)
             {
                 hwaccel += "-hwaccel nvdec ";
                 hwaccel += $"-c:v {cuvidDecoder} ";

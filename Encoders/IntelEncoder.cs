@@ -24,7 +24,7 @@ namespace FfmpegConverter.Encoders
             }
 
             string hwaccel = "";
-            if (decoder != null)
+            if (!options.ForceCpuDecode && decoder != null)
             {
                 hwaccel += "-hwaccel qsv ";
                 hwaccel += $"-c:v {decoder} ";
