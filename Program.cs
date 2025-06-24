@@ -66,6 +66,9 @@ namespace FfmpegConverter
                     errorCount++;
             }
 
+            // Clear the log file tracking so shutdown does not create a "user closed" log after all conversions
+            FfmpegProcessRunner.ClearCurrentOutputLogFile();
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Conversion complete.");
             if (errorCount > 0)

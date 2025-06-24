@@ -51,6 +51,10 @@ namespace FfmpegConverter
 
         public static string[] FindFiles(string[] args, EncoderConfig config)
         {
+            Func<string, bool> isOriginalVideo = f =>
+                FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase) &&
+                !Path.GetFileName(f).ToLowerInvariant().Contains("ffmpeg");
+
             if (args != null && args.Length > 0)
             {
                 var folderArgs = args.Where(Directory.Exists).ToArray();
@@ -65,11 +69,11 @@ namespace FfmpegConverter
                 {
                     files.AddRange(
                         Directory.GetFiles(folder, "*.*", searchOption)
-                            .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                            .Where(isOriginalVideo)
                     );
                 }
 
-                files.AddRange(fileArgs);
+                files.AddRange(fileArgs.Where(isOriginalVideo));
 
                 return files.ToArray();
             }
@@ -81,7 +85,7 @@ namespace FfmpegConverter
                     : SearchOption.TopDirectoryOnly;
 
                 return Directory.GetFiles(currentDir, "*.*", searchOption)
-                    .Where(f => FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+                    .Where(isOriginalVideo)
                     .ToArray();
             }
         }

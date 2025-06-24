@@ -9,6 +9,7 @@ namespace FfmpegConverter.Ffmpeg
     internal static class FfmpegProcessRunner
     {
         private static Process currentFfmpegProcess;
+        private static string currentOutputLogFile; // Track the current log file path
         private static int lastProgressLength = 0;
 
         public static readonly string[] VideoExtensions = {
@@ -38,11 +39,13 @@ namespace FfmpegConverter.Ffmpeg
             SetConsoleCtrlHandler(_handler, true);
             Console.CancelKeyPress += (sender, e) =>
             {
+                WriteUserClosedLogIfNeeded();
                 KillFfmpegIfRunning();
                 Environment.Exit(0);
             };
             AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
             {
+                WriteUserClosedLogIfNeeded();
                 KillFfmpegIfRunning();
             };
         }
@@ -51,10 +54,23 @@ namespace FfmpegConverter.Ffmpeg
         {
             Console.WriteLine("\n");
             Console.WriteLine("Exiting system due to external CTRL-C, or process kill, or shutdown");
+            WriteUserClosedLogIfNeeded();
             KillFfmpegIfRunning();
             Console.WriteLine("Cleanup complete");
             Environment.Exit(-1);
             return true;
+        }
+
+        private static void WriteUserClosedLogIfNeeded()
+        {
+            if (!string.IsNullOrEmpty(currentOutputLogFile) && !File.Exists(currentOutputLogFile))
+            {
+                try
+                {
+                    File.WriteAllText(currentOutputLogFile, "User closed the program during conversion.");
+                }
+                catch { }
+            }
         }
 
         private static void KillFfmpegIfRunning()
@@ -68,6 +84,11 @@ namespace FfmpegConverter.Ffmpeg
                 }
             }
             catch { }
+        }
+
+        public static void ClearCurrentOutputLogFile()
+        {
+            currentOutputLogFile = null;
         }
 
         public static bool ConvertWithFfmpeg(string inputFile, string hardware, EncoderConfig config)
@@ -101,6 +122,8 @@ namespace FfmpegConverter.Ffmpeg
             string randomStr = Utils.GetRandomString(4);
             string baseName = $"{Path.GetFileNameWithoutExtension(inputFile)}-ffmpeg";
             string outputFile = Path.Combine(Path.GetDirectoryName(inputFile), baseName + $"-{randomStr}.mkv");
+            var logFile = outputFile + ".log";
+            currentOutputLogFile = logFile; // Track the log file for this conversion
 
             string arguments = EncoderFactory.GetArguments(hardware, inputFile, outputFile, config, codecName);
 
@@ -181,7 +204,6 @@ namespace FfmpegConverter.Ffmpeg
                 Console.WriteLine($"Error converting {inputFile}");
                 Console.ResetColor();
                 // Write error output and command to a log file
-                var logFile = outputFile + ".log";
                 var logContent = new System.Text.StringBuilder();
                 logContent.AppendLine("ffmpeg command used:");
                 logContent.AppendLine($"ffmpeg {arguments}");
