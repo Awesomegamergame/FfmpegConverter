@@ -13,5 +13,6 @@ namespace FfmpegConverter.Encoders
         [DataMember] public int AqStrength { get; set; } = 8;
         [DataMember] public bool EnableTemporalAq { get; set; } = false;
         [DataMember] public bool ForceCpuDecode { get; set; } = false;
+        [DataMember] public bool CopySubtitles { get; set; } = true;
     }
 }
