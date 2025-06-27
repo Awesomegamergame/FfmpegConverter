@@ -55,6 +55,7 @@ namespace FfmpegConverter
                 FfmpegProcessRunner.VideoExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase) &&
                 !Path.GetFileName(f).ToLowerInvariant().Contains("ffmpeg");
 
+            IEnumerable<string> allFiles;
             if (args != null && args.Length > 0)
             {
                 var folderArgs = args.Where(Directory.Exists).ToArray();
@@ -67,15 +68,11 @@ namespace FfmpegConverter
 
                 foreach (var folder in folderArgs)
                 {
-                    files.AddRange(
-                        Directory.GetFiles(folder, "*.*", searchOption)
-                            .Where(isOriginalVideo)
-                    );
+                    files.AddRange(Directory.GetFiles(folder, "*.*", searchOption));
                 }
+                files.AddRange(fileArgs);
 
-                files.AddRange(fileArgs.Where(isOriginalVideo));
-
-                return files.ToArray();
+                allFiles = files;
             }
             else
             {
@@ -84,10 +81,35 @@ namespace FfmpegConverter
                     ? SearchOption.AllDirectories
                     : SearchOption.TopDirectoryOnly;
 
-                return Directory.GetFiles(currentDir, "*.*", searchOption)
-                    .Where(isOriginalVideo)
-                    .ToArray();
+                allFiles = Directory.GetFiles(currentDir, "*.*", searchOption);
             }
+
+            // Group files by base name (without -ffmpeg-*.mkv or extension)
+            var filesByBase = allFiles
+                .GroupBy(f =>
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(f);
+                    var ffmpegIdx = fileName.IndexOf("-ffmpeg", StringComparison.OrdinalIgnoreCase);
+                    if (ffmpegIdx > 0)
+                        fileName = fileName.Substring(0, ffmpegIdx);
+                    return Path.Combine(Path.GetDirectoryName(f) ?? "", fileName);
+                })
+                .ToList();
+
+            var filesToConvert = new List<string>();
+            foreach (var group in filesByBase)
+            {
+                var originals = group.Where(isOriginalVideo).ToList();
+                var ffmpegFiles = group.Where(f =>
+                    Path.GetFileName(f).ToLowerInvariant().Contains("ffmpeg") &&
+                    Path.GetExtension(f).Equals(".mkv", StringComparison.OrdinalIgnoreCase)).ToList();
+
+                // If a converted ffmpeg file exists, skip both original and ffmpeg files
+                if (ffmpegFiles.Count == 0)
+                    filesToConvert.AddRange(originals);
+            }
+
+            return filesToConvert.ToArray();
         }
     }
 }
