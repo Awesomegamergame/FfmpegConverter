@@ -42,8 +42,11 @@ namespace FfmpegConverter.Encoders
             string aqSpatialArgs = options.EnableSpatialAq ? $"-spatial-aq 1 -aq-strength {options.AqStrength}" : "";
             string aqTemporalArgs = options.EnableTemporalAq ? "-temporal-aq 1" : "";
 
-            return $" {hwaccel}-i \"{inputFile}\" -map 0 -c:v av1_nvenc {tenBitDepthArgs} -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqSpatialArgs} {aqTemporalArgs} -c:a copy"
-                + (options.CopySubtitles ? " -c:s copy" : " -sn") + $" \"{outputFile}\"";
+            string mapAndSubs = options.EnableStrip
+                ? "-sn"
+                : "-map 0 -c:s copy";
+
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_nvenc {tenBitDepthArgs} -split_encode_mode forced -preset p1 -cq {options.CqValue} -b:v 0 {aqSpatialArgs} {aqTemporalArgs} -c:a copy {mapAndSubs} \"{outputFile}\"";
         }
     }
 }

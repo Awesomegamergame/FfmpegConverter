@@ -48,8 +48,11 @@ namespace FfmpegConverter.Encoders
                 qualityArgs = $"-q:v {options.CqpValue}";
             }
 
-            return $" {hwaccel}-i \"{inputFile}\" -map 0 -c:v av1_qsv -async_depth 16 -preset 7 {tenBitDepthArgs} {qualityArgs} -c:a copy" 
-                + (options.CopySubtitles ? " -c:s copy" : " -sn") + $" \"{outputFile}\"";
+            string mapAndSubs = options.EnableStrip
+                ? "-sn"
+                : "-map 0 -c:s copy";
+
+            return $" {hwaccel}-i \"{inputFile}\" -c:v av1_qsv -async_depth 16 -preset 7 {tenBitDepthArgs} {qualityArgs} -c:a copy {mapAndSubs} \"{outputFile}\"";
         }
     }
 }

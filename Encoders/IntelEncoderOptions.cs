@@ -35,6 +35,6 @@ namespace FfmpegConverter.Encoders
 
         [DataMember] public bool EnableTenBit { get; set; } = true;
         [DataMember] public bool ForceCpuDecode { get; set; } = false;
-        [DataMember] public bool CopySubtitles { get; set; } = true;
+        [DataMember] public bool EnableStrip { get; set; } = false;
     }
 }
